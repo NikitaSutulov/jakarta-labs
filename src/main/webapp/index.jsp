@@ -5,8 +5,13 @@
   <title>JSP - Hello World</title>
 </head>
 <body>
-<h1><%= "Hello World!" %></h1>
+<h1><%= "Hello from team 5!" %></h1>
 <br/>
-<a href="hello-servlet">Hello Servlet</a>
+<p>Our team:</p>
+<ul>
+    <li>
+        <a href="nikita-servlet">Nikita Sutulov</a>
+    </li>
+</ul>
 </body>
 </html>
