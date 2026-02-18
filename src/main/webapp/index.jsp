@@ -19,6 +19,9 @@
         <a href="nikita-servlet">Nikita Sutulov</a>
     </li>
     <li>
+        <a href="nazar-servlet">Назар Вовк ІМ-52мп</a>
+    </li>
+    <li>
         <a href="">Anton Lapushenko</a>
     </li>
 </ul>
