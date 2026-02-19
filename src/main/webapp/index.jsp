@@ -23,8 +23,6 @@
       <li>
         <a href="nikita-servlet">Nikita Sutulov</a>
       </li>
-      <li>
-    </li>
     <li>
         <a href="nazar-servlet">Назар Вовк ІМ-52мп</a>
     </li>
