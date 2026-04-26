@@ -1,6 +1,8 @@
 package com.team5.jakarta.controller;
 
-import com.team5.jakarta.data.DataStore;
+import com.team5.jakarta.service.CategoryService;
+import com.team5.jakarta.service.ProductService;
+import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,13 +14,18 @@ import java.io.IOException;
 @WebServlet(name = "catalogServlet", urlPatterns = {"/catalog", ""})
 public class CatalogServlet extends HttpServlet {
 
+    @EJB
+    private CategoryService categoryService;
+
+    @EJB
+    private ProductService productService;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        DataStore store = DataStore.getInstance();
-        request.setAttribute("rootCategories", store.getRootCategories());
-        request.setAttribute("totalProducts", store.getProducts().size());
-        request.setAttribute("totalCategories", store.getCategories().size());
+        request.setAttribute("rootCategories", categoryService.getRootCategories());
+        request.setAttribute("totalProducts", productService.getAllProducts().size());
+        request.setAttribute("totalCategories", categoryService.getAllCategories().size());
         request.getRequestDispatcher("/WEB-INF/views/catalog.jsp").forward(request, response);
     }
 }
