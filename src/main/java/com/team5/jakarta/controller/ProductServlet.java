@@ -1,8 +1,10 @@
 package com.team5.jakarta.controller;
 
-import com.team5.jakarta.data.DataStore;
 import com.team5.jakarta.model.Category;
 import com.team5.jakarta.model.Product;
+import com.team5.jakarta.service.CategoryService;
+import com.team5.jakarta.service.ProductService;
+import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,10 +16,15 @@ import java.io.IOException;
 @WebServlet(name = "productServlet", urlPatterns = "/product")
 public class ProductServlet extends HttpServlet {
 
+    @EJB
+    private CategoryService categoryService;
+
+    @EJB
+    private ProductService productService;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        DataStore store = DataStore.getInstance();
 
         String idParam = request.getParameter("id");
         if (idParam == null) {
@@ -33,19 +40,18 @@ public class ProductServlet extends HttpServlet {
             return;
         }
 
-        Product product = store.getProductById(id);
+        Product product = productService.getProductById(id);
         if (product == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Product not found");
             return;
         }
 
-        Category category = store.getCategoryById(product.getCategoryId());
+        Category category = categoryService.getCategoryById(product.getCategoryId());
         request.setAttribute("product", product);
         request.setAttribute("category", category);
         if (category != null) {
-            request.setAttribute("breadcrumb", store.getCategoryBreadcrumb(category.getId()));
+            request.setAttribute("breadcrumb", categoryService.getCategoryBreadcrumb(category.getId()));
         }
         request.getRequestDispatcher("/WEB-INF/views/product.jsp").forward(request, response);
     }
 }
-

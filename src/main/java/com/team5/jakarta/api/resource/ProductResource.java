@@ -3,8 +3,10 @@ package com.team5.jakarta.api.resource;
 import com.team5.jakarta.api.dto.PagedResponse;
 import com.team5.jakarta.api.dto.ProductRequest;
 import com.team5.jakarta.api.dto.ProductResponse;
-import com.team5.jakarta.data.DataStore;
 import com.team5.jakarta.model.Product;
+import com.team5.jakarta.service.CategoryService;
+import com.team5.jakarta.service.ProductService;
+import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -23,7 +25,11 @@ import java.util.stream.Collectors;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ProductResource {
 
-    private final DataStore dataStore = DataStore.getInstance();
+    @Inject
+    private ProductService productService;
+
+    @Inject
+    private CategoryService categoryService;
 
     @GET
     public Response getProducts(
@@ -35,7 +41,7 @@ public class ProductResource {
             @DefaultValue("10") @QueryParam("size") @Min(1) @Max(100) int size,
             @DefaultValue("id,asc") @QueryParam("sort") String sort
     ) {
-        List<Product> filtered = dataStore.getProducts().stream()
+        List<Product> filtered = productService.getAllProducts().stream()
                 .filter(p -> categoryId == null || p.getCategoryId() == categoryId)
                 .filter(p -> name == null || name.isBlank()
                         || p.getName().toLowerCase(Locale.ROOT).contains(name.toLowerCase(Locale.ROOT)))
@@ -64,7 +70,7 @@ public class ProductResource {
     @GET
     @Path("/{id}")
     public Response getProductById(@PathParam("id") int id) {
-        Product product = dataStore.getProductById(id);
+        Product product = productService.getProductById(id);
         if (product == null) {
             throw new NotFoundException("Product not found by id=" + id);
         }
@@ -85,7 +91,7 @@ public class ProductResource {
                 request.getAvailable()
         );
 
-        Product created = dataStore.addProduct(product);
+        Product created = productService.addProduct(product);
         URI location = uriInfo.getAbsolutePathBuilder().path(String.valueOf(created.getId())).build();
         return Response.created(location).entity(toResponse(created)).build();
     }
@@ -93,7 +99,7 @@ public class ProductResource {
     @PUT
     @Path("/{id}")
     public Response updateProduct(@PathParam("id") int id, @Valid ProductRequest request) {
-        Product existing = dataStore.getProductById(id);
+        Product existing = productService.getProductById(id);
         if (existing == null) {
             throw new NotFoundException("Product not found by id=" + id);
         }
@@ -110,14 +116,14 @@ public class ProductResource {
                 request.getAvailable()
         );
 
-        dataStore.updateProduct(updated);
+        productService.updateProduct(updated);
         return Response.ok(toResponse(updated)).build();
     }
 
     @DELETE
     @Path("/{id}")
     public Response deleteProduct(@PathParam("id") int id) {
-        boolean deleted = dataStore.deleteProduct(id);
+        boolean deleted = productService.deleteProduct(id);
         if (!deleted) {
             throw new NotFoundException("Product not found by id=" + id);
         }
@@ -125,7 +131,7 @@ public class ProductResource {
     }
 
     private void ensureCategoryExists(Integer categoryId) {
-        if (categoryId == null || dataStore.getCategoryById(categoryId) == null) {
+        if (categoryId == null || categoryService.getCategoryById(categoryId) == null) {
             throw new BadRequestException("Category not found by id=" + categoryId);
         }
     }
