@@ -1,6 +1,6 @@
 package com.team5.jakarta.service;
 
-import com.team5.jakarta.data.DataStore;
+import com.team5.jakarta.dao.ProductDao;
 import com.team5.jakarta.model.Product;
 import jakarta.ejb.Stateless;
 import java.util.List;
@@ -8,29 +8,33 @@ import java.util.List;
 @Stateless
 public class ProductService {
 
-    private final DataStore dataStore = DataStore.getInstance();
+    private final ProductDao productDao = ProductDao.getInstance();
 
     public List<Product> getAllProducts() {
-        return dataStore.getProducts();
+        return productDao.findAll();
     }
 
     public List<Product> getProductsByCategoryId(int categoryId) {
-        return dataStore.getProductsByCategoryId(categoryId);
+        return productDao.findAllByCategoryId(categoryId);
     }
 
     public Product getProductById(int id) {
-        return dataStore.getProductById(id);
+        return productDao.findById(id).orElse(null);
     }
 
     public Product addProduct(Product product) {
-        return dataStore.addProduct(product);
+        return productDao.save(product);
     }
 
     public boolean updateProduct(Product product) {
-        return dataStore.updateProduct(product);
+        return productDao.update(product);
     }
 
     public boolean deleteProduct(int id) {
-        return dataStore.deleteProduct(id);
+        return productDao.delete(id);
+    }
+
+    public int countAll() {
+        return productDao.countAll();
     }
 }

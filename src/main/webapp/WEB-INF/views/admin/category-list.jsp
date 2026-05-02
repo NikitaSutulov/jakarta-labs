@@ -13,6 +13,23 @@
         </div>
     </div>
 
+    <div class="search-bar" style="margin-bottom: 20px; background: #f4f4f4; padding: 15px; border-radius: 8px;">
+        <form method="get" action="${pageContext.request.contextPath}/admin/category" style="display: flex; gap: 10px;">
+            <input type="hidden" name="action" value="findByName">
+
+            <input type="text" name="name"
+                   placeholder="Введіть назву категорії..."
+                   value="<c:out value='${param.name}'/>"
+                   style="flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+
+            <button type="submit" class="btn btn-primary">Пошук</button>
+
+            <c:if test="${not empty param.name}">
+                <a href="${pageContext.request.contextPath}/admin/category" class="btn btn-secondary">Очистити</a>
+            </c:if>
+        </form>
+    </div>
+
     <c:choose>
         <c:when test="${empty categories}">
             <p class="empty-msg">Категорій ще немає.</p>

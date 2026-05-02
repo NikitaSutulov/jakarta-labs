@@ -23,8 +23,8 @@ public class AdminDashboardServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setAttribute("categoryCount", categoryService.getAllCategories().size());
-        request.setAttribute("productCount", productService.getAllProducts().size());
+        request.setAttribute("categoryCount", categoryService.countAll());
+        request.setAttribute("productCount", productService.countAll());
         request.getRequestDispatcher("/WEB-INF/views/admin/dashboard.jsp").forward(request, response);
     }
 }

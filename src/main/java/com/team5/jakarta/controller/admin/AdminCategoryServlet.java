@@ -22,24 +22,36 @@ public class AdminCategoryServlet extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action");
 
-        if ("new".equals(action)) {
-            request.setAttribute("allCategories", categoryService.getAllCategories());
-            request.getRequestDispatcher("/WEB-INF/views/admin/category-form.jsp").forward(request, response);
-
-        } else if ("edit".equals(action)) {
-            int id = parseId(request.getParameter("id"));
-            Category category = categoryService.getCategoryById(id);
-            if (category == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                return;
+        switch (action) {
+            case "new" -> {
+                request.setAttribute("allCategories", categoryService.getAllCategories());
+                request.getRequestDispatcher("/WEB-INF/views/admin/category-form.jsp").forward(request, response);
             }
-            request.setAttribute("category", category);
-            request.setAttribute("allCategories", categoryService.getAllCategories());
-            request.getRequestDispatcher("/WEB-INF/views/admin/category-form.jsp").forward(request, response);
-
-        } else {
-            request.setAttribute("categories", categoryService.getAllCategories());
-            request.getRequestDispatcher("/WEB-INF/views/admin/category-list.jsp").forward(request, response);
+            case "edit" -> {
+                int id = parseId(request.getParameter("id"));
+                Category category = categoryService.getCategoryById(id);
+                if (category == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+                request.setAttribute("category", category);
+                request.setAttribute("allCategories", categoryService.getAllCategories());
+                request.getRequestDispatcher("/WEB-INF/views/admin/category-form.jsp").forward(request, response);
+            }
+            case "findByName" -> {
+                String name = request.getParameter("name");
+                if (!name.trim().isEmpty()) {
+                    request.setAttribute("categories", categoryService.getCategoriesByNameContaining(name));
+                    request.getRequestDispatcher("/WEB-INF/views/admin/category-list.jsp").forward(request, response);
+                } else {
+                    request.setAttribute("categories", categoryService.getAllCategories());
+                    request.getRequestDispatcher("/WEB-INF/views/admin/category-list.jsp").forward(request, response);
+                }
+            }
+            case null, default -> {
+                request.setAttribute("categories", categoryService.getAllCategories());
+                request.getRequestDispatcher("/WEB-INF/views/admin/category-list.jsp").forward(request, response);
+            }
         }
     }
 
