@@ -24,8 +24,8 @@ public class CatalogServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("rootCategories", categoryService.getRootCategories());
-        request.setAttribute("totalProducts", productService.getAllProducts().size());
-        request.setAttribute("totalCategories", categoryService.getAllCategories().size());
+        request.setAttribute("totalProducts", productService.countAll());
+        request.setAttribute("totalCategories", categoryService.countAll());
         request.getRequestDispatcher("/WEB-INF/views/catalog.jsp").forward(request, response);
     }
 }
