@@ -56,5 +56,5 @@ VALUES
 (11, 'DeLonghi Dinamica ECAM350.55.B', 'Автоматична кавоварка, 15 бар, 1,8 л, чорна', 21999.0,
  'https://content2.rozetka.com.ua/goods/images/big/163132518.jpg', 5, TRUE);
 
-ALTER TABLE categories ALTER COLUMN id RESTART WITH (SELECT MAX(id) + 1 FROM categories);
-ALTER TABLE products ALTER COLUMN id RESTART WITH (SELECT MAX(id) + 1 FROM products);
+${sync_categories_id};
+${sync_products_id};
