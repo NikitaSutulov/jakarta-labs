@@ -1,50 +1,45 @@
 package com.team5.jakarta.model;
 
-import java.util.Objects;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "categories", schema = "shop")
+@NoArgsConstructor
 public class Category {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
 
-    private int id;
+    @Size(max = 255)
+    @Column(name = "name")
     private String name;
+
+    @Size(max = 255)
+    @Column(name = "description")
     private String description;
-    private Integer parentId;
 
-    public Category() {}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "parent_id")
+    private Category parent;
 
-    public Category(int id, String name, String description, Integer parentId) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.parentId = parentId;
-    }
+    @OneToMany(mappedBy = "parent")
+    private Set<Category> categories = new LinkedHashSet<>();
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    @OneToMany(mappedBy = "category")
+    private Set<Product> products = new LinkedHashSet<>();
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public Integer getParentId() { return parentId; }
-    public void setParentId(Integer parentId) { this.parentId = parentId; }
-
-    public boolean isRoot() { return parentId == null; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Category category)) return false;
-        return id == category.id;
-    }
-
-    @Override
-    public int hashCode() { return Objects.hash(id); }
-
-    @Override
-    public String toString() {
-        return "Category{id=" + id + ", name='" + name + "', parentId=" + parentId + "}";
-    }
 }
-
