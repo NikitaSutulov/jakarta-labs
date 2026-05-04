@@ -45,7 +45,7 @@ public class ProductDao implements Dao<Product>{
     public Product save(Product product) {
         logger.debug("Trying save product: {}", product);
         em.persist(product);
-        return em.find(Product.class, product);
+        return product;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class ProductDao implements Dao<Product>{
     @Override
     public boolean update(Product product) {
         logger.debug("Trying update product with ID: {}", product.getId());
-        if (product.getId() == 0 || em.find(Category.class, product.getId()) == null) {
+        if (product.getId() == 0 || em.find(Product.class, product.getId()) == null) {
             logger.warn("Product with ID {} not found for update", product.getId());
             return false;
         }

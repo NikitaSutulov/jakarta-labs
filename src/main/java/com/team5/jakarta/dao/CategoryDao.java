@@ -51,7 +51,7 @@ public class CategoryDao implements Dao<Category> {
     public Category save(Category category) {
         logger.debug("Trying save category: {}", category);
         em.persist(category);
-        return em.find(Category.class, category);
+        return category;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class CategoryDao implements Dao<Category> {
 
     public List<Category> findByNameContaining(String name) {
         logger.debug("Trying to find all categories where name contains: {}", name);
-        return em.createQuery("SELECT c FROM Category c WHERE c.name ILIKE :name", Category.class)
+        return em.createQuery("SELECT c FROM Category c WHERE LOWER(c.name) LIKE LOWER(:name)", Category.class)
                 .setParameter("name", "%" + name + "%")
                 .getResultList();
     }

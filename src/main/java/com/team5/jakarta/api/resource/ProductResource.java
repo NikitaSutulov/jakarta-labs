@@ -7,7 +7,6 @@ import com.team5.jakarta.model.Product;
 import com.team5.jakarta.service.CategoryService;
 import com.team5.jakarta.service.ProductService;
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -18,6 +17,7 @@ import java.net.URI;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Path("/products")
@@ -42,7 +42,7 @@ public class ProductResource {
             @DefaultValue("id,asc") @QueryParam("sort") String sort
     ) {
         List<Product> filtered = productService.getAllProducts().stream()
-                .filter(p -> categoryId == null || p.getCategoryId() == categoryId)
+                .filter(p -> categoryId == null || Objects.equals(p.getCategory().getId(), categoryId))
                 .filter(p -> name == null || name.isBlank()
                         || p.getName().toLowerCase(Locale.ROOT).contains(name.toLowerCase(Locale.ROOT)))
                 .filter(p -> minPrice == null || p.getPrice() >= minPrice)
@@ -78,19 +78,10 @@ public class ProductResource {
     }
 
     @POST
-    public Response createProduct(@Valid ProductRequest request, @Context UriInfo uriInfo) {
-        ensureCategoryExists(request.getCategoryId());
-
-        Product product = new Product(
-                0,
-                request.getName(),
-                request.getDescription(),
-                request.getPrice(),
-                request.getImageUrl(),
-                request.getCategoryId(),
-                request.getAvailable()
-        );
-
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createProduct(Product product, @Context UriInfo uriInfo) {
+        ensureCategoryExists(product.getCategory().getId());
         Product created = productService.addProduct(product);
         URI location = uriInfo.getAbsolutePathBuilder().path(String.valueOf(created.getId())).build();
         return Response.created(location).entity(toResponse(created)).build();
@@ -98,7 +89,9 @@ public class ProductResource {
 
     @PUT
     @Path("/{id}")
-    public Response updateProduct(@PathParam("id") int id, @Valid ProductRequest request) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateProduct(@PathParam("id") int id, ProductRequest request) {
         Product existing = productService.getProductById(id);
         if (existing == null) {
             throw new NotFoundException("Product not found by id=" + id);
@@ -106,18 +99,15 @@ public class ProductResource {
 
         ensureCategoryExists(request.getCategoryId());
 
-        Product updated = new Product(
-                id,
-                request.getName(),
-                request.getDescription(),
-                request.getPrice(),
-                request.getImageUrl(),
-                request.getCategoryId(),
-                request.getAvailable()
-        );
+        existing.setName(request.getName());
+        existing.setDescription(request.getDescription());
+        existing.setPrice(request.getPrice());
+        existing.setImageUrl(request.getImageUrl());
+        existing.setCategory(categoryService.getCategoryById(request.getCategoryId()));
+        existing.setAvailable(request.getAvailable());
 
-        productService.updateProduct(updated);
-        return Response.ok(toResponse(updated)).build();
+        productService.updateProduct(existing);
+        return Response.ok(toResponse(existing)).build();
     }
 
     @DELETE
@@ -143,8 +133,8 @@ public class ProductResource {
         response.setDescription(product.getDescription());
         response.setPrice(product.getPrice());
         response.setImageUrl(product.getImageUrl());
-        response.setCategoryId(product.getCategoryId());
-        response.setAvailable(product.isAvailable());
+        response.setCategoryId(product.getCategory().getId());
+        response.setAvailable(product.getAvailable());
         return response;
     }
 

@@ -33,7 +33,7 @@
                 <c:forEach var="prod" items="${products}">
                     <c:set var="catName" value="—"/>
                     <c:forEach var="cat" items="${allCategories}">
-                        <c:if test="${cat.id == prod.categoryId}">
+                        <c:if test="${cat.id == prod.category.id}">
                             <c:set var="catName" value="${cat.name}"/>
                         </c:if>
                     </c:forEach>

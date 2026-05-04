@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="pageTitle" value="Категорії — Адмін"/>
 <%@ include file="../includes/header.jsp" %>
@@ -52,11 +52,11 @@
                         <td><c:out value="${cat.name}"/></td>
                         <td><c:out value="${cat.description}"/></td>
                         <td>
-                            <c:if test="${cat.parentId == null}">
+                            <c:if test="${cat.parent == null}">
                                 <span style="color:#888;font-style:italic;">Коренева</span>
                             </c:if>
-                            <c:if test="${cat.parentId != null}">
-                                <c:out value="${cat.parentId}"/>
+                            <c:if test="${cat.parent != null}">
+                                <c:out value="${cat.parent.id}"/>
                             </c:if>
                         </td>
                         <td>

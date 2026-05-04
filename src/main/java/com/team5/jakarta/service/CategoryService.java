@@ -3,6 +3,7 @@ package com.team5.jakarta.service;
 import com.team5.jakarta.dao.CategoryDao;
 import com.team5.jakarta.model.Category;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.List;
 @Stateless
 public class CategoryService {
 
-    private final CategoryDao categoryDao = CategoryDao.getInstance();
+    @Inject
+    private CategoryDao categoryDao;
 
     public List<Category> getAllCategories() {
         return categoryDao.findAll();
@@ -33,14 +35,14 @@ public class CategoryService {
         Category current = getCategoryById(id);
         while (current != null) {
             breadcrumb.addFirst(current);
-            if (current.getParentId() == null) break;
-            current = getCategoryById(current.getParentId());
+            if (current.getParent() == null) break;
+            current = current.getParent();
         }
         return breadcrumb;
     }
 
-    public Category addCategory(Category category) {
-        return categoryDao.save(category);
+    public void addCategory(Category category) {
+        categoryDao.save(category);
     }
 
     public boolean updateCategory(Category category) {

@@ -46,7 +46,7 @@ public class CategoryResource {
         response.setId(category.getId());
         response.setName(category.getName());
         response.setDescription(category.getDescription());
-        response.setParentId(category.getParentId());
+        response.setParentId(category.getParent().getId());
         return response;
     }
 }
