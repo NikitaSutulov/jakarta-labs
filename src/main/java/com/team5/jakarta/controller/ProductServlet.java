@@ -46,7 +46,7 @@ public class ProductServlet extends HttpServlet {
             return;
         }
 
-        Category category = categoryService.getCategoryById(product.getCategoryId());
+        Category category = product.getCategory();
         request.setAttribute("product", product);
         request.setAttribute("category", category);
         if (category != null) {

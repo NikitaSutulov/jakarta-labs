@@ -1,64 +1,41 @@
 package com.team5.jakarta.model;
 
-import java.util.Objects;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@Entity
+@Table(name = "products", schema = "shop")
+@NoArgsConstructor
 public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
 
-    private int id;
+    @Size(max = 255)
+    @Column(name = "name")
     private String name;
+
+    @Size(max = 255)
+    @Column(name = "description")
     private String description;
-    private double price;
+
+    @Column(name = "price")
+    private Double price;
+
+    @Size(max = 255)
+    @Column(name = "image_url")
     private String imageUrl;
-    private int categoryId;
-    private boolean available;
 
-    public Product() {}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
-    public Product(int id, String name, String description, double price,
-                   String imageUrl, int categoryId, boolean available) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.imageUrl = imageUrl;
-        this.categoryId = categoryId;
-        this.available = available;
-    }
-
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
-
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-
-    public int getCategoryId() { return categoryId; }
-    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
-
-    public boolean isAvailable() { return available; }
-    public void setAvailable(boolean available) { this.available = available; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Product product)) return false;
-        return id == product.id;
-    }
-
-    @Override
-    public int hashCode() { return Objects.hash(id); }
-
-    @Override
-    public String toString() {
-        return "Product{id=" + id + ", name='" + name + "', price=" + price + ", categoryId=" + categoryId + "}";
-    }
+    @Column(name = "available")
+    private Boolean available;
 }
-

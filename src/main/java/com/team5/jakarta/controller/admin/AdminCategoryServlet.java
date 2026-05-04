@@ -66,7 +66,7 @@ public class AdminCategoryServlet extends HttpServlet {
             c.setName(request.getParameter("name"));
             c.setDescription(request.getParameter("description"));
             String parentIdStr = request.getParameter("parentId");
-            c.setParentId((parentIdStr == null || parentIdStr.isBlank()) ? null : Integer.parseInt(parentIdStr));
+            c.setParent((parentIdStr == null || parentIdStr.isBlank()) ? null : categoryService.getCategoryById(Integer.parseInt(parentIdStr)));
             categoryService.addCategory(c);
 
         } else if ("update".equals(action)) {
@@ -76,7 +76,7 @@ public class AdminCategoryServlet extends HttpServlet {
                 c.setName(request.getParameter("name"));
                 c.setDescription(request.getParameter("description"));
                 String parentIdStr = request.getParameter("parentId");
-                c.setParentId((parentIdStr == null || parentIdStr.isBlank()) ? null : Integer.parseInt(parentIdStr));
+                c.setParent((parentIdStr == null || parentIdStr.isBlank()) ? null : categoryService.getCategoryById(Integer.parseInt(parentIdStr)));
                 categoryService.updateCategory(c);
             }
 

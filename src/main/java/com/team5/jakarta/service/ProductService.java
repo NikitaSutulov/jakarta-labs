@@ -3,12 +3,15 @@ package com.team5.jakarta.service;
 import com.team5.jakarta.dao.ProductDao;
 import com.team5.jakarta.model.Product;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+
 import java.util.List;
 
 @Stateless
 public class ProductService {
 
-    private final ProductDao productDao = ProductDao.getInstance();
+    @Inject
+    private ProductDao productDao;
 
     public List<Product> getAllProducts() {
         return productDao.findAll();

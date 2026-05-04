@@ -56,24 +56,14 @@ public class AdminProductServlet extends HttpServlet {
 
         if ("create".equals(action)) {
             Product p = new Product();
-            p.setName(request.getParameter("name"));
-            p.setDescription(request.getParameter("description"));
-            p.setPrice(parseDouble(request.getParameter("price")));
-            p.setImageUrl(request.getParameter("imageUrl"));
-            p.setCategoryId(parseId(request.getParameter("categoryId")));
-            p.setAvailable("on".equals(request.getParameter("available")));
+            setPropertiesInProduct(request, p);
             productService.addProduct(p);
 
         } else if ("update".equals(action)) {
             int id = parseId(request.getParameter("id"));
             Product p = productService.getProductById(id);
             if (p != null) {
-                p.setName(request.getParameter("name"));
-                p.setDescription(request.getParameter("description"));
-                p.setPrice(parseDouble(request.getParameter("price")));
-                p.setImageUrl(request.getParameter("imageUrl"));
-                p.setCategoryId(parseId(request.getParameter("categoryId")));
-                p.setAvailable("on".equals(request.getParameter("available")));
+                setPropertiesInProduct(request, p);
                 productService.updateProduct(p);
             }
 
@@ -83,6 +73,15 @@ public class AdminProductServlet extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/admin/product");
+    }
+
+    private void setPropertiesInProduct(HttpServletRequest request, Product p) {
+        p.setName(request.getParameter("name"));
+        p.setDescription(request.getParameter("description"));
+        p.setPrice(parseDouble(request.getParameter("price")));
+        p.setImageUrl(request.getParameter("imageUrl"));
+        p.setCategory(categoryService.getCategoryById(parseId(request.getParameter("categoryId"))));
+        p.setAvailable("on".equals(request.getParameter("available")));
     }
 
     private int parseId(String s) {

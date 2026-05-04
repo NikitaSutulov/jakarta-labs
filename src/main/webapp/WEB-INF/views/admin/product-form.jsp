@@ -54,9 +54,9 @@
                     <option value="">— Оберіть категорію —</option>
                     <c:forEach var="cat" items="${allCategories}">
                         <option value="<c:out value='${cat.id}'/>"
-                                <c:if test="${product != null && product.categoryId == cat.id}">selected</c:if>>
+                                <c:if test="${product != null && product.category.id == cat.id}">selected</c:if>>
                             <c:out value="${cat.name}"/>
-                            <c:if test="${cat.parentId == null}"> [корінь]</c:if>
+                            <c:if test="${cat.parent == null}"> [корінь]</c:if>
                         </option>
                     </c:forEach>
                 </select>
