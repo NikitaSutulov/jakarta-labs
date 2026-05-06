@@ -15,8 +15,10 @@ import jakarta.ws.rs.core.*;
 
 import java.net.URI;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -118,6 +120,31 @@ public class ProductResource {
             throw new NotFoundException("Product not found by id=" + id);
         }
         return Response.noContent().build();
+    }
+
+    /**
+     * Lab 7 demo endpoint. Масово застосовує знижку до всіх товарів категорії.
+     * Демонструє transaction propagation (REQUIRED vs REQUIRES_NEW) і відкат.
+     */
+    @POST
+    @Path("/bulk-discount")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response bulkDiscount(
+            @QueryParam("categoryId") int categoryId,
+            @QueryParam("percent") double percent,
+            @DefaultValue("false") @QueryParam("forceFailure") boolean forceFailure,
+            @DefaultValue("REQUIRED") @QueryParam("auditMode") String auditMode
+    ) {
+        int updated = "REQUIRES_NEW".equalsIgnoreCase(auditMode)
+                ? productService.applyDiscountToCategoryWithIndependentAudit(categoryId, percent, forceFailure)
+                : productService.applyDiscountToCategory(categoryId, percent, forceFailure);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("updated", updated);
+        body.put("categoryId", categoryId);
+        body.put("percent", percent);
+        body.put("auditMode", auditMode);
+        return Response.ok(body).build();
     }
 
     private void ensureCategoryExists(Integer categoryId) {

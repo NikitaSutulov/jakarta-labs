@@ -112,3 +112,159 @@
 ### 9. В чому полягає різниця між Query та NamedQuery?
 *   **Query**: динамічний запит, який створюється безпосередньо в коді програми за допомогою `em.createQuery()`. Використовується, коли логіка запиту залежить від умов під час виконання програми.
 *   **NamedQuery**: статичний запит, який оголошується заздалегідь за допомогою анотації над класом сутності. Такі запити компілюються один раз при запуску застосунку, що підвищує продуктивність і дозволяє використовувати їх повторно в різних частинах коду.
+
+---
+
+## Лабораторна робота №7: Використання Container Managed Transactions
+
+### 1. Що таке транзакція? Як розшифровується абревіатура ACID? Що означає кожний з термінів?
+**Транзакція** — це логічно завершена послідовність операцій над БД, яка виконується як одне неподільне ціле: або всі операції успішно зберігаються (commit), або жодна (rollback). Транзакції гарантують узгодженість даних навіть у випадку збоїв і конкурентного доступу.
+
+**ACID** — набір з чотирьох властивостей надійних транзакцій:
+*   **A — Atomicity (Атомарність):** транзакція виконується «все або нічого». Якщо хоча б одна операція не вдалась — усі попередні зміни в межах транзакції відкочуються.
+*   **C — Consistency (Узгодженість):** транзакція переводить БД з одного коректного стану в інший. Усі обмеження цілісності (FK, NOT NULL, CHECK) дотримуються.
+*   **I — Isolation (Ізольованість):** проміжні зміни однієї транзакції не видимі іншим до commit. Рівнем ізоляції регулюється «наскільки» транзакції одна одну бачать.
+*   **D — Durability (Стійкість):** після commit зміни збережені на постійному носії та переживуть будь-який збій (живлення, ОС, СУБД).
+
+---
+
+### 2. Які є рівні ізоляцій транзакцій і для боротьби з якими проблемами вони використовуються?
+Стандартом SQL визначено чотири рівні ізоляції; кожен наступний строгіший і блокує більше проблем (але дорожчий за продуктивністю):
+
+| Рівень | Dirty Read | Non-Repeatable Read | Phantom Read |
+| :--- | :---: | :---: | :---: |
+| `READ_UNCOMMITTED` | ✗ | ✗ | ✗ |
+| `READ_COMMITTED` | ✓ | ✗ | ✗ |
+| `REPEATABLE_READ` | ✓ | ✓ | ✗ |
+| `SERIALIZABLE` | ✓ | ✓ | ✓ |
+
+Проблеми, з якими борються рівні ізоляції:
+*   **Dirty Read (брудне читання):** транзакція читає не закомічені зміни іншої транзакції, які потім можуть відкотитися.
+*   **Non-Repeatable Read (неповторюване читання):** один і той самий рядок прочитано двічі з різними значеннями (інша транзакція встигла закомітити UPDATE).
+*   **Phantom Read (фантомне читання):** один і той самий запит з умовою `WHERE` повертає різну кількість рядків (інша транзакція встигла закомітити INSERT/DELETE).
+
+PostgreSQL за замовчуванням використовує **READ_COMMITTED**.
+
+---
+
+### 3. Чим декларативне керування транзакціями відрізняється від імперативного? В чому полягають переваги і недоліки цих підходів?
+*   **Імперативне (програмне) керування:** розробник вручну керує транзакцією — викликає `begin()`, `commit()`, `rollback()`, обгортає код у try/catch/finally. Приклад: `UserTransaction ut; ut.begin(); ... ut.commit();` або `em.getTransaction().begin()`.
+*   **Декларативне керування:** межі транзакції описуються анотаціями (`@TransactionAttribute`, `@Transactional`), а сам початок/комміт/відкат виконує контейнер. Приклад: `@TransactionAttribute(REQUIRED)` над методом EJB.
+
+| Аспект | Декларативне | Імперативне |
+| :--- | :--- | :--- |
+| Код | Чистий — лише бізнес-логіка | Багато boilerplate (begin/commit/rollback/finally) |
+| Помилки | Контейнер сам відкочує на RuntimeException | Розробник може забути rollback або commit |
+| Гнучкість | Обмежена — фіксовані типи propagation | Повний контроль (можна комітити вибірково в одному методі) |
+| Тестованість | Потребує контейнерного середовища | Можна тестувати без контейнера |
+| Коли підходить | Більшість CRUD-операцій | Складні сценарії з кількома точками комміту |
+
+У цій лабораторній використовується **декларативне керування** через анотації `@TransactionAttribute` на `@Stateless` EJB.
+
+---
+
+### 4. Як розшифровуються абревіатури BMT та CMT?
+*   **CMT (Container-Managed Transactions):** транзакціями керує контейнер. Розробник лише вказує політику через `@TransactionAttribute`. Це режим за замовчуванням для EJB. Приклад:
+    ```java
+    @Stateless
+    public class ProductService {
+        @TransactionAttribute(TransactionAttributeType.REQUIRED)
+        public void addProduct(Product p) { productDao.save(p); }
+    }
+    ```
+*   **BMT (Bean-Managed Transactions):** транзакціями керує сам bean через `UserTransaction`. Активується анотацією `@TransactionManagement(BEAN)`. Приклад:
+    ```java
+    @Stateless
+    @TransactionManagement(TransactionManagementType.BEAN)
+    public class FlywayMigrationConfig {
+        @Resource UserTransaction ut;
+        public void migrate() throws Exception {
+            ut.begin();
+            try { /* ... */ ut.commit(); }
+            catch (Exception e) { ut.rollback(); throw e; }
+        }
+    }
+    ```
+
+У нашому проєкті всі сервіси (`ProductService`, `CategoryService`, `AuditService`) використовують **CMT** за замовчуванням; `FlywayMigrationConfig` використовує **BMT** для запуску міграцій під час старту.
+
+---
+
+### 5. Що таке розповсюдження транзакцій (Transaction propagation)? Які типи розповсюдження транзакцій існують?
+**Transaction propagation** — це політика, яка описує, як метод поводиться щодо вже існуючої транзакції викликача: чи приєднується до неї, чи створює нову, чи виконується без транзакції.
+
+У Jakarta EE задається через `@TransactionAttribute(TransactionAttributeType.X)`:
+
+| Тип | Якщо транзакція ВЖЕ існує | Якщо транзакції НЕМАЄ | Типове застосування |
+| :--- | :--- | :--- | :--- |
+| **REQUIRED** (default) | Приєднується до існуючої | Створює нову | Більшість бізнес-методів |
+| **REQUIRES_NEW** | Призупиняє наявну, створює НОВУ незалежну | Створює нову | Аудит, надсилання сповіщень — мають зберегтись навіть при відкаті основної |
+| **MANDATORY** | Приєднується до існуючої | Кидає `EJBTransactionRequiredException` | Допоміжні методи, які мають викликатися лише з транзакційного контексту |
+| **SUPPORTS** | Приєднується | Виконується без транзакції | Read-only методи, де транзакція не критична |
+| **NOT_SUPPORTED** | Призупиняє наявну, виконується без транзакції | Виконується без транзакції | Довгі read-only операції, які не мають блокувати |
+| **NEVER** | Кидає `EJBException` | Виконується без транзакції | Методи, які явно не мають викликатись з транзакції |
+
+**Демонстрація в проєкті:**
+*   `AuditService.logInCurrentTransaction(...)` — `REQUIRED`: запис аудиту відкочується разом з основною транзакцією.
+*   `AuditService.logInNewTransaction(...)` — `REQUIRES_NEW`: запис аудиту виконується в окремій транзакції й зберігається попри відкат основної. Це класичний приклад незалежного логування.
+*   `AuditService.logMandatory(...)` — `MANDATORY`: можна викликати лише всередині існуючої транзакції.
+
+---
+
+## Реалізація демо Lab 7
+
+Ми додали в існуючий проєкт каталогу товарів (варіант 5) такі компоненти:
+
+### Нові файли:
+*   `model/AuditLog.java` — нова сутність для журналу аудиту.
+*   `dao/AuditLogDao.java` — `@ApplicationScoped` DAO для `AuditLog`.
+*   `service/AuditService.java` — окремий `@Stateless` EJB з трьома методами для різних `@TransactionAttribute`.
+*   `controller/admin/AdminLab7DemoServlet.java` — сервлет демо-сторінки `/admin/lab7-demo`.
+*   `webapp/WEB-INF/views/admin/lab7-demo.jsp` — UI з формою та таблицями цін/журналу.
+*   `resources/db/migration/V3__create_audit_log.sql` — Flyway-міграція для таблиці `audit_log`.
+
+### Модифіковані файли:
+*   `service/ProductService.java` — явні `@TransactionAttribute` + два нових методи: `applyDiscountToCategory` (REQUIRED-аудит) та `applyDiscountToCategoryWithIndependentAudit` (REQUIRES_NEW-аудит).
+*   `service/CategoryService.java` — явні `@TransactionAttribute(SUPPORTS/REQUIRED)`.
+*   `api/resource/ProductResource.java` — REST endpoint `POST /api/products/bulk-discount`.
+*   `META-INF/persistence.xml` — реєстрація `AuditLog`.
+*   `webapp/WEB-INF/views/admin/dashboard.jsp` — кнопка переходу на демо.
+
+### Бізнес-операція з оновленням кількох записів в одній таблиці (п. 3 ТЗ):
+Метод `ProductService.applyDiscountToCategory(categoryId, percent, forceFailure)`:
+1. Завантажує всі товари категорії.
+2. Кожному товару встановлює нову ціну `oldPrice * (1 - percent/100)` — це **N окремих UPDATE у таблиці `products`** в межах однієї транзакції.
+3. Записує операцію в журнал аудиту.
+4. Якщо `forceFailure=true`, кидає `EJBException` — контейнер відкочує транзакцію, всі N оновлень + запис журналу відкочуються разом.
+
+### Розповсюдження транзакцій між двома компонентами (п. 4 ТЗ):
+`ProductService` (зовнішній компонент) викликає `AuditService` (внутрішній компонент):
+*   **REQUIRED** (`logInCurrentTransaction`): обидва компоненти в одній транзакції — успіх або відкат разом.
+*   **REQUIRES_NEW** (`logInNewTransaction`): `AuditService` починає **нову** транзакцію — її commit не залежить від результату зовнішньої.
+
+### Як перевірити сценарії:
+Відкрити `http://localhost:8080/jakarta/admin/lab7-demo` і запустити:
+
+| Сценарій | Категорія | % | forceFailure | auditMode | Очікуваний результат |
+| :--- | :---: | :---: | :---: | :--- | :--- |
+| **A.** Успіх, REQUIRED | 6 (Ноутбуки) | 10 | OFF | REQUIRED | Ціни знижено на 10%; +1 рядок `BULK_DISCOUNT` (OK) |
+| **B.** Відкат, REQUIRED | 6 | 10 | **ON** | REQUIRED | Ціни **НЕ змінено**; журнал **НЕ змінено** (audit row теж відкочено) |
+| **C.** Відкат, REQUIRES_NEW | 6 | 10 | **ON** | REQUIRES_NEW | Ціни **НЕ змінено**; **АЛЕ** в журналі є `BULK_DISCOUNT_ATTEMPT` (FAIL) — доказ незалежної транзакції |
+| **D.** Успіх, REQUIRES_NEW | 6 | 5 | OFF | REQUIRES_NEW | Ціни знижено; журнал має `ATTEMPT`, `BULK_DISCOUNT`, `SUCCESS` |
+
+Альтернативно через REST:
+```
+curl -X POST 'http://localhost:8080/jakarta/api/products/bulk-discount?categoryId=6&percent=5&forceFailure=true&auditMode=REQUIRES_NEW'
+```
+
+### Перевірка через SQL:
+```sql
+SELECT id, name, price FROM shop.products WHERE category_id = 6;
+SELECT * FROM shop.audit_log ORDER BY id DESC LIMIT 10;
+```
+
+### Технічні нотатки:
+*   `AuditService` навмисно винесений в **окремий** EJB. Якби методи з `REQUIRES_NEW` лежали в тому ж класі й викликались через `this`, EJB-проксі було б обійдено й анотація `@TransactionAttribute` ігнорувалась би (класична пастка self-invocation).
+*   Контейнер автоматично відкочує транзакцію лише на `RuntimeException` / `EJBException`. Checked-винятки за замовчуванням НЕ викликають rollback (можна змінити через `@ApplicationException(rollback = true)`).
+*   `REQUIRES_NEW` потребує **двох фізичних з'єднань** з БД одночасно (зовнішня + внутрішня транзакції). Стандартний пул GlassFish (steady=8, max=32) це повністю покриває.
+*   Read-методи позначено як `@TransactionAttribute(SUPPORTS)` — вони не починають транзакцію самостійно, але приєднуються до існуючої, якщо викликаються з транзакційного контексту.
