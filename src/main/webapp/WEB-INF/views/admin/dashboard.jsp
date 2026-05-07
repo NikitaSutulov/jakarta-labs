@@ -21,6 +21,7 @@
     <div class="actions">
         <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/category">Управління категоріями</a>
         <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/product">Управління товарами</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/lab7-demo">Демо транзакцій (Lab 7)</a>
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/catalog">← Перейти до каталогу</a>
     </div>
 </div>
