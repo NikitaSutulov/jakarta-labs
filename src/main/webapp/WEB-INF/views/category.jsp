@@ -27,10 +27,10 @@
         <p style="color:#555;margin-bottom:20px;"><c:out value="${category.description}"/></p>
     </c:if>
 
-    <c:if test="${not empty childCategories}">
+    <c:if test="${not empty category.categories}">
         <h2>Підкатегорії</h2>
         <div class="card-grid">
-            <c:forEach var="sub" items="${childCategories}">
+            <c:forEach var="sub" items="${category.categories}">
                 <a class="card" href="${pageContext.request.contextPath}/category?id=<c:out value='${sub.id}'/>">
                     <div class="card-title"><c:out value="${sub.name}"/></div>
                     <c:if test="${not empty sub.description}">
@@ -43,12 +43,12 @@
 
     <h2>Товари</h2>
     <c:choose>
-        <c:when test="${empty products}">
+        <c:when test="${empty category.products}">
             <p class="empty-msg">У цій категорії немає товарів.</p>
         </c:when>
         <c:otherwise>
             <div class="card-grid">
-                <c:forEach var="prod" items="${products}">
+                <c:forEach var="prod" items="${category.products}">
                     <a class="card" href="${pageContext.request.contextPath}/product?id=<c:out value='${prod.id}'/>">
                         <div class="card-title"><c:out value="${prod.name}"/></div>
                         <div class="card-desc"><c:out value="${prod.description}"/></div>

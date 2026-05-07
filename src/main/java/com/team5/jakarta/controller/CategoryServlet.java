@@ -2,7 +2,6 @@ package com.team5.jakarta.controller;
 
 import com.team5.jakarta.model.Category;
 import com.team5.jakarta.service.CategoryService;
-import com.team5.jakarta.service.ProductService;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -17,9 +16,6 @@ public class CategoryServlet extends HttpServlet {
 
     @EJB
     private CategoryService categoryService;
-
-    @EJB
-    private ProductService productService;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -47,8 +43,6 @@ public class CategoryServlet extends HttpServlet {
 
         request.setAttribute("category", category);
         request.setAttribute("breadcrumb", categoryService.getCategoryBreadcrumb(id));
-        request.setAttribute("childCategories", categoryService.getChildCategories(id));
-        request.setAttribute("products", productService.getProductsByCategoryId(id));
         request.getRequestDispatcher("/WEB-INF/views/category.jsp").forward(request, response);
     }
 }
